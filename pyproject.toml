@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rl-algo"
+version = "0.1.0"
+description = "Execution-feedback driven code repair RL (course project)"
+readme = "README.md"
+requires-python = ">=3.10"
+# 核心（环境层 + 数据层）只用标准库，便于在无 GPU 机器上跑测试
+dependencies = []
+
+[project.optional-dependencies]
+train = [
+  "torch>=2.4",
+  "transformers>=4.44",
+  "trl>=0.12",
+  "peft>=0.11",
+  "datasets>=2.20",
+  "accelerate>=0.33",
+]
+dev = ["pytest>=7"]
+
+[tool.setuptools.packages.find]
+include = ["rl_algo*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
