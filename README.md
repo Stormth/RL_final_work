@@ -2,7 +2,7 @@
 
 强化学习课程设计。用**隐藏测试作为可验证奖励**，对 `Qwen2.5-Coder-7B` 做 LoRA + GRPO/GDPO 训练：模型先"一次生成"，失败后把执行反馈回灌，再"修复一轮"；用 GDPO 解耦多奖励归一化，解决"做对"与"省一轮 / 不超时"之间的尺度冲突。
 
-> 状态：环境层与数据层已可运行（W1 进行中），训练层待 GPU 机器验证。
+> 状态：环境层、数据层、评测层已可运行；训练层待 GPU 机器验证。
 
 ## 文档
 
@@ -15,7 +15,7 @@
 
 ```bash
 python -m pip install -e ".[dev]"     # 只装 pytest
-pytest                                # 28 项：判定 / 沙箱 / 清洗 / 切分
+pytest                                # 41 项：判定 / 沙箱 / 清洗 / 切分 / 指标
 
 python scripts/fetch_data.py --limit 400 --offset 0 --out data/cache/old.jsonl
 python scripts/fetch_data.py --limit 200 --offset 2441 --out data/cache/new.jsonl
@@ -23,6 +23,24 @@ python scripts/fetch_data.py --limit 200 --offset 2441 --out data/cache/new.json
 python scripts/prepare_data.py --raw data/cache/leetcode_raw.jsonl --out data/processed
 python scripts/selftest.py --split test --n 8       # 参考解必须 AC、坏解必须失败
 python -m rl_algo.train.grpo_single_turn --data data/processed/train.jsonl --dry-run
+```
+
+**先测基线（最重要的一步）**——判断小模型到底能不能学：
+
+```bash
+# 采样口径：pass@1 / pass@4 / pass@8，同时产出难度校准用的 pass_rates.json
+python -m rl_algo.eval.baseline --data data/processed/test.jsonl \
+    --model Qwen/Qwen2.5-Coder-1.5B-Instruct --samples 8 --out results/base-1.5b-test
+
+# 贪心口径：模型"第一反应"的通过率，与采样口径分开报
+python -m rl_algo.eval.baseline --data data/processed/test.jsonl \
+    --model Qwen/Qwen2.5-Coder-1.5B-Instruct --samples 1 --temperature 0 --out results/base-1.5b-greedy
+
+# 训练集上的 pass_rates.json 直接喂给难度校准
+python -m rl_algo.eval.baseline --data data/processed/train.jsonl \
+    --model Qwen/Qwen2.5-Coder-1.5B-Instruct --samples 8 --out results/base-1.5b-train
+python scripts/prepare_data.py --raw data/cache/leetcode_raw.jsonl --out data/processed \
+    --pass-rates results/base-1.5b-train/pass_rates.json
 ```
 
 训练（GPU 机器，需 `pip install -e ".[train]"`）：
@@ -50,9 +68,10 @@ python -m rl_algo.train.grpo_single_turn \
 ├── rl_algo/
 │   ├── env/          # sandbox.py / judge.py / prompts.py
 │   ├── data/         # fetch.py / prepare.py
+│   ├── eval/         # metrics.py / baseline.py
 │   └── train/        # rewards.py / grpo_single_turn.py
 ├── scripts/          # fetch_data / prepare_data / selftest
-└── tests/            # 28 项离线单测
+└── tests/            # 41 项离线单测
 ```
 
 ## 计划与 Gate
