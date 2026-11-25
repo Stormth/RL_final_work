@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -182,6 +183,17 @@ def _generate_vllm(
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    data_path = Path(args.data)
+    if not data_path.exists():
+        print(
+            f"[错误] 找不到数据文件: {data_path}\n"
+            "先准备数据（二选一）：\n"
+            "  1) 能联网：python scripts/fetch_all.py\n"
+            "  2) 无外网：把本机打包的 data/cache/*.jsonl 拷到 data/cache/，再 python scripts/fetch_all.py --offline\n"
+            f"完成后应存在: {data_path}",
+            file=sys.stderr,
+        )
+        raise SystemExit(2)
     records = load_jsonl(args.data)
     if args.limit:
         records = records[: args.limit]

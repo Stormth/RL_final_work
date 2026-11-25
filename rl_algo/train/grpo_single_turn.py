@@ -207,8 +207,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    if args.data and not Path(args.data).exists() and args.dry_run:
-        print(f"找不到数据集: {args.data}", file=sys.stderr)
+    data_path = Path(args.data)
+    if not data_path.exists():
+        print(
+            f"[错误] 找不到数据集: {data_path}\n"
+            "先准备数据（二选一）：\n"
+            "  1) 能联网：python scripts/fetch_all.py\n"
+            "  2) 无外网：把 data/cache/*.jsonl 拷进来，再 python scripts/fetch_all.py --offline",
+            file=sys.stderr,
+        )
         return 2
     return dry_run(args) if args.dry_run else train(args)
 
