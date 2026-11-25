@@ -47,6 +47,16 @@ python scripts/env_check.py      # 看 CUDA / 显存 / 沙箱是否正常
 python scripts/fetch_all.py      # 拉取 + 合并 + 清洗 + 切分，一步到位
 ```
 
+**如果集群连不上 huggingface（国内很常见，但 github 通常能通）**，直接用仓库自带的离线包：
+
+```bash
+tar xzf offline_bundle.tgz        # 解出 data/cache/{old,new}.jsonl + 修好的脚本
+python scripts/fetch_all.py --offline
+```
+
+> `offline_bundle.tgz` 是 600 道题的原始缓存（3MB），只为绕过无外网环境；数据集为 Apache-2.0。
+> 能用 `fetch_all.py` 联网拉取后，这个包可以删掉。
+
 集群 GPU 节点常常没有外网，两种办法：
 
 ```bash
