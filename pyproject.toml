@@ -20,6 +20,7 @@ train = [
   "datasets>=2.20",
   "accelerate>=0.33",
 ]
+vllm = ["vllm>=0.6"]
 dev = ["pytest>=7"]
 
 [tool.setuptools.packages.find]
