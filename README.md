@@ -60,6 +60,17 @@ python scripts/fetch_all.py --offline
 
 预期输出：`600 → 424 可用`，train 277 / test 147。
 
+### 2.5 模型权重（无外网时的第二个拦路虎）
+
+```bash
+export HF_ENDPOINT=https://hf-mirror.com      # 先试镜像
+# 镜像也不通：本机下载后 scp
+# 本机：huggingface-cli download Qwen/Qwen2.5-Coder-1.5B-Instruct --local-dir models/qwen1.5b
+# 集群：--model ./models/qwen1.5b
+```
+
+模型体积：1.5B 约 3GB，7B 约 15GB。先确认 `~/.cache` 或 `models/` 所在分区有空间。
+
 ### 3. 基线评测（**先做这个，再决定要不要训练**）
 
 ```bash
